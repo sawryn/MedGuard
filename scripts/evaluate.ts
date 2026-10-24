@@ -2,6 +2,7 @@ import { parsePrescription } from "../lib/resolver";
 import { analyzeSafety } from "../lib/safety";
 import { calculateExposures } from "../lib/dose";
 import type { PatientContext } from "../lib/types";
+import { MAX_PRESCRIPTION_CHARACTERS, validateAnalyzePayload } from "../lib/validation";
 
 const cases = [
   { name: "exact verified brand", input: "Dolo 650 — 1 tablet twice daily", expected: "verified" },
@@ -44,6 +45,20 @@ for (const testCase of doseCases) {
   if (ok) passed += 1;
   console.log(`${ok ? "PASS" : "FAIL"}  ${testCase.name}  -> ${actual}`);
 }
-const totalCases = cases.length + doseCases.length;
+
+const validationCases = [
+  { name: "validation accepts text and context", input: { prescription: "Dolo 650 — 1 tab BD", context: { ageYears: 35, weightKg: 68, kidneyStatus: "known-normal", liverDisease: "no" } }, expected: true },
+  { name: "validation rejects empty prescription", input: { prescription: "   " }, expected: false },
+  { name: "validation rejects impossible age", input: { prescription: "Dolo 650", context: { ageYears: 121 } }, expected: false },
+  { name: "validation rejects oversized prescription", input: { prescription: "x".repeat(MAX_PRESCRIPTION_CHARACTERS + 1) }, expected: false },
+];
+
+for (const testCase of validationCases) {
+  const actual = validateAnalyzePayload(testCase.input).ok;
+  const ok = actual === testCase.expected;
+  if (ok) passed += 1;
+  console.log(`${ok ? "PASS" : "FAIL"}  ${testCase.name}  -> ${actual}`);
+}
+const totalCases = cases.length + doseCases.length + validationCases.length;
 console.log(`\n${passed}/${totalCases} evaluation cases passed`);
 if (passed !== totalCases) process.exitCode = 1;

@@ -27,12 +27,19 @@ import { calculateExposures } from "@/lib/dose";
 import { formatStrength, parsePrescription } from "@/lib/resolver";
 import { analyzeSafety } from "@/lib/safety";
 import type { Finding, PatientContext, ResolvedMedicine, SafetyReport } from "@/lib/types";
+import { MAX_PRESCRIPTION_CHARACTERS } from "@/lib/validation";
 
 type InputMode = "text" | "ocr";
 type ViewMode = "review" | "method";
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
 const DEFAULT_CONTEXT: PatientContext = { ageYears: null, weightKg: null, kidneyStatus: "unknown", liverDisease: "unknown" };
+
+const getPatientContextError = (context: PatientContext) => {
+  if (context.ageYears !== null && (!Number.isFinite(context.ageYears) || context.ageYears < 0 || context.ageYears > 120)) return "Enter an age from 0 to 120 years.";
+  if (context.weightKg !== null && (!Number.isFinite(context.weightKg) || context.weightKg <= 0 || context.weightKg > 300)) return "Enter a weight greater than 0 and no more than 300 kg.";
+  return "";
+};
 
 export default function Home() {
   const [view, setView] = useState<ViewMode>("review");
@@ -271,7 +278,7 @@ function InputPanel({ mode, setMode, close, prescription, setPrescription, ocrSt
   return <section className="input-panel">
     <div className="input-panel-heading"><div><p className="eyebrow">Update your prescription</p><h2>What should we review?</h2></div><button className="close-input" onClick={() => { stopCamera(); close(); }} aria-label="Close prescription editor">×</button></div>
     <div className="input-tabs"><button className={mode === "text" ? "active" : ""} onClick={() => { stopCamera(); setMode("text"); }}>Type it</button><button className={mode === "ocr" ? "active" : ""} onClick={() => setMode("ocr")}>Add image</button></div>
-    {mode === "text" ? <textarea className="warm-text-input" value={prescription} onChange={(event) => setPrescription(event.target.value)} aria-label="Prescription text" /> : <div className="warm-dropzone">
+     {mode === "text" ? <><textarea className="warm-text-input" value={prescription} maxLength={MAX_PRESCRIPTION_CHARACTERS} onChange={(event) => setPrescription(event.target.value)} aria-label="Prescription text" /><div className="input-meta"><span>Use one medicine per line when possible.</span><span>{prescription.length.toLocaleString()} / {MAX_PRESCRIPTION_CHARACTERS.toLocaleString()}</span></div></> : <div className="warm-dropzone">
       {cameraOpen ? <div className="camera-preview"><video ref={videoRef} className="camera-video" aria-label="Live camera preview" autoPlay playsInline muted /><div className="camera-toolbar"><button className="secondary-action" onClick={stopCamera}>Cancel</button><button className="capture-action" onClick={capturePhoto}><Camera size={16} />Take photo</button></div></div> : <><FileImage size={26} /><b>Add a prescription image</b><span>Choose a file or use the camera on this device. OCR runs locally.</span><div className="camera-actions"><button className="secondary-action" onClick={() => fileRef.current?.click()} disabled={isOcrRunning}><Upload size={15} />{isOcrRunning ? "Reading…" : "Choose image"}</button><button className="secondary-action camera-button" onClick={() => { if (cameraSupported) void startCamera(); else cameraFileRef.current?.click(); }} disabled={isOcrRunning}><Camera size={15} />Use camera</button></div><span className="camera-hint">{cameraSupported ? "Live preview available on this device" : "Opens the device camera picker when supported"}</span></>}
     </div>}
     <input ref={fileRef} className="file-input" type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void runOcr(file); }} />
@@ -296,16 +303,19 @@ function MedicineCard({ medicine, index, onConfirm }: { medicine: ResolvedMedici
 
 function PatientContextCard({ context, onChange, onApply, isAnalyzing }: { context: PatientContext; onChange: (context: PatientContext) => void; onApply: () => void; isAnalyzing: boolean }) {
   const update = (patch: Partial<PatientContext>) => onChange({ ...context, ...patch });
+  const contextError = getPatientContextError(context);
+  const contextReady = context.ageYears !== null && context.weightKg !== null && !contextError;
   return <section className="soft-card context-card" aria-labelledby="patient-context-title">
     <div className="context-heading"><div className="soft-card-icon"><Info size={19} /></div><div><p className="eyebrow">Patient context</p><h3 id="patient-context-title">Make the dose screen personal</h3></div></div>
     <p>Age and weight help the prototype decide whether its limited dose rule can run. Missing context keeps the check blocked.</p>
     <div className="context-fields">
-      <label><span>Age <small>years</small></span><input name="ageYears" type="number" min="0" max="120" inputMode="numeric" placeholder="e.g. 35" value={context.ageYears ?? ""} onChange={(event) => update({ ageYears: event.target.value ? Number(event.target.value) : null })} /></label>
-      <label><span>Weight <small>kg</small></span><input name="weightKg" type="number" min="0" max="300" step="0.1" inputMode="decimal" placeholder="e.g. 68" value={context.weightKg ?? ""} onChange={(event) => update({ weightKg: event.target.value ? Number(event.target.value) : null })} /></label>
+      <label><span>Age <small>years</small></span><input name="ageYears" type="number" min="0" max="120" inputMode="numeric" placeholder="e.g. 35" value={context.ageYears ?? ""} aria-invalid={Boolean(contextError && context.ageYears !== null)} onChange={(event) => update({ ageYears: event.target.value ? Number(event.target.value) : null })} /></label>
+      <label><span>Weight <small>kg</small></span><input name="weightKg" type="number" min="0" max="300" step="0.1" inputMode="decimal" placeholder="e.g. 68" value={context.weightKg ?? ""} aria-invalid={Boolean(contextError && context.weightKg !== null)} onChange={(event) => update({ weightKg: event.target.value ? Number(event.target.value) : null })} /></label>
       <label className="context-wide"><span>Kidney function</span><select name="kidneyStatus" value={context.kidneyStatus} onChange={(event) => update({ kidneyStatus: event.target.value as PatientContext["kidneyStatus"] })}><option value="unknown">Unknown</option><option value="known-normal">Known normal</option><option value="impaired">Impaired / concern</option></select></label>
       <label className="context-wide"><span>Liver disease</span><select name="liverDisease" value={context.liverDisease} onChange={(event) => update({ liverDisease: event.target.value as PatientContext["liverDisease"] })}><option value="unknown">Unknown</option><option value="no">No known disease</option><option value="yes">Yes / concern</option></select></label>
     </div>
-    <button className="secondary-action context-apply" onClick={onApply} disabled={isAnalyzing || context.ageYears === null || context.weightKg === null}>{isAnalyzing ? "Refreshing…" : "Apply to review"}<ArrowRight size={14} /></button>
+    {contextError && <div className="context-error" role="alert">{contextError}</div>}
+    <button className="secondary-action context-apply" onClick={onApply} disabled={isAnalyzing || !contextReady}>{isAnalyzing ? "Refreshing…" : "Apply to review"}<ArrowRight size={14} /></button>
     <small className="context-note">Prototype rule coverage: paracetamol daily exposure only. This is not a diagnosis or a personalized prescription.</small>
   </section>;
 }

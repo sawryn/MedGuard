@@ -61,7 +61,21 @@ Dolo 650 — 1 tablet if needed
 
 Point out that the combination product expands into ibuprofen and paracetamol before duplicate scanning.
 
-## 2:35–3:00 — Close with research
+## 2:35–2:50 — Show patient-context guardrails
+
+Enter an age and weight in the patient context panel and apply the review.
+
+Say:
+
+> A dose screen is not allowed to run just because a medicine was recognized. It also needs the required patient context. When that context is missing or outside the prototype rule, MedGuard shows the blocked check instead of inventing a personalized conclusion.
+
+Point out:
+
+- the patient context is visible and editable;
+- the limited paracetamol screen is versioned and source-linked;
+- the rule remains explicitly prototype-level.
+
+## 2:50–3:00 — Close with research
 
 Say:
 

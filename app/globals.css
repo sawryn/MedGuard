@@ -93,6 +93,7 @@ h3 { font-size: 1.15rem; }
 .input-tabs button.active { color: var(--forest); background: white; font-weight: 800; box-shadow: 0 3px 10px rgba(33,77,60,.08); }
 .warm-text-input { width: 100%; min-height: 150px; resize: vertical; padding: 15px; border: 1px solid var(--line); border-radius: 14px; outline: none; background: #fffcf7; color: var(--ink); line-height: 1.65; }
 .warm-text-input:focus { border-color: var(--leaf); box-shadow: 0 0 0 4px rgba(94,154,115,.12); }
+.input-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 7px; color: var(--muted); font-size: .68rem; }
 .warm-dropzone { min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #b7ceb4; border-radius: 14px; color: var(--leaf); background: #f8fcf5; text-align: center; }
 .warm-dropzone b { color: var(--forest); font-size: .85rem; }
 .warm-dropzone span { color: var(--muted); font-size: .75rem; }
@@ -190,7 +191,9 @@ h3 { font-size: 1.15rem; }
 .context-fields label small { color: var(--muted); font-weight: 500; }
 .context-fields input, .context-fields select { width: 100%; min-height: 42px; padding: 9px 10px; border: 1px solid #dcdccc; border-radius: 10px; color: var(--ink); background: #fffdf9; outline: none; font-size: .78rem; }
 .context-fields input:focus, .context-fields select:focus { border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(94,154,115,.12); }
+.context-fields input[aria-invalid="true"] { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(217,110,95,.1); }
 .context-wide { grid-column: 1 / -1; }
+.context-error { margin-top: 10px; color: #a34d42; font-size: .72rem; font-weight: 700; }
 .context-apply { width: 100%; margin-top: 14px; }
 .context-note { display: block; margin-top: 11px; color: var(--muted); font-size: .66rem; line-height: 1.45; }
 .evidence-card { background: #fff9ef; border-color: #eee0c7; }

@@ -9,6 +9,7 @@ MedGuard India is a 12-hour hackathon prototype for explainable, uncertainty-awa
 3. [`DATA_AND_SAFETY.md`](./DATA_AND_SAFETY.md) — medicine records, evidence provenance, confidence gates, and the deliberately narrow safety rules.
 4. [`EVALUATION.md`](./EVALUATION.md) — research questions, baselines, test design, metrics, and allowed claims.
 5. [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md) — the judge-facing three-minute story and fallback plan.
+6. [`POSITIONING.md`](./POSITIONING.md) — the project pitch, viability boundary, and claims we can defend.
 
 ## Agreed constraints
 
@@ -24,7 +25,7 @@ MedGuard India is a 12-hour hackathon prototype for explainable, uncertainty-awa
 
 ## Current implementation status
 
-The initial Next.js scaffold and a draft interaction flow already exist in `app/`, `lib/`, and `scripts/`. The UI is now considered a draft only. Further frontend work should follow the wireframes agreed after reviewing these documents.
+The working prototype is implemented in `app/`, `lib/`, and `scripts/`. It includes typed input, optional browser-local OCR/camera capture, confidence-gated brand resolution, instruction parsing, ingredient expansion, duplicate detection, deterministic exposure arithmetic, patient-context blocking, source-linked findings, and a local fallback when the analysis endpoint is unavailable. The current evaluation suite has 14 cases; production deployment and clinical review remain open.
 
 ## Product sentence
 
